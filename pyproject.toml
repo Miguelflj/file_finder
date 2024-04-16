@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "buscador"
+version = "0.1.0"
+description = ""
+authors = ["Miguel Freitas <miguel_flj@id.uff.br>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+click = "^8.1.7"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
