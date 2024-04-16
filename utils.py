@@ -1,4 +1,5 @@
-
+from datetime import datetime
+from exceptions import FileFinderError
 def get_files(path):
     """
     Obtém todos os arquivos no diretório pesquisado
@@ -25,6 +26,20 @@ def find_by_ext(path, value):
             """
     return [file for file in get_files(path) if file.suffix == value]
 
-def find_by_modified(path, value):
+def find_by_mod(path, value):
+    #input: dd/mm/aaaa
+    try:
+        datetime_obj = datetime.strptime(value, "%d/%m/%Y")
+    except ValueError:
+        raise FileFinderError("Data Inválida!")
+
+    return [file for file in get_files(path) if datetime.fromtimestamp(file.stat().st_mtime) >= datetime_obj]
+
+
+
+
     pass
 
+def timestamp_to_string(timestamp):
+    datetime_obj = datetime.fromtimestamp(timestamp)
+    return datetime_obj.strftime("%d/%m/%Y - %H:%M:%S:%f")

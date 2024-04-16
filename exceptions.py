@@ -1,0 +1,7 @@
+
+
+class FileFinderError(Exception):
+    pass
+
+
+
