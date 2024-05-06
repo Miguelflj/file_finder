@@ -12,7 +12,7 @@ def option_search(path, key, value, recursive):
     }
     files = search_mapping[key](path, value)
     if recursive:
-        subdirs = get_folders( )
+        subdirs = get_folders(path)
         for subdir in subdirs:
             files += option_search(subdir, key, value, recursive)
     return files
