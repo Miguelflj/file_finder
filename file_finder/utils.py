@@ -1,5 +1,5 @@
 from datetime import datetime
-from exceptions import InvalidInputError
+from file_finder.exceptions import InvalidInputError
 
 
 def get_folders(path):

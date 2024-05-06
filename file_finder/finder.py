@@ -1,11 +1,11 @@
 import click
 from pathlib import Path
-from utils import timestamp_to_string, get_folders, get_files_details
+from file_finder.utils import timestamp_to_string, get_folders, get_files_details
 import shutil
 from datetime import datetime
 from tabulate import tabulate
-from constants import SEARCH_MAPPING, TABLE_HEADRES
-from exceptions import InvalidInputError, NoneFileFinderError, FileFinderError
+from file_finder.constants import SEARCH_MAPPING, TABLE_HEADRES
+from file_finder.exceptions import InvalidInputError, NoneFileFinderError, FileFinderError
 def option_search(path, key, value, recursive):
     files = SEARCH_MAPPING[key](path, value)
 
@@ -70,8 +70,3 @@ def finder(path, key, value, recursive, copy_to, save):
     copy_files(copy_to=copy_to, files=files)
 
 
-if __name__ == "__main__":
-    try:
-        finder()
-    except FileFinderError as err:
-        click.echo(click.style(f" ❌ {err}", bg='black', fg='red', italic=True))
