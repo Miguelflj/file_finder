@@ -26,7 +26,7 @@ ffinder --help
 ## Example
 
 ```bash
-python your_script.py -k name -v example.txt -r -s -c /path/to/copy
+ffinder -k ext -v .zip -r -s -c /zips
 ```
 
 This command will search for all files named "example.txt" recursively starting from the current directory. It will save a report in the current directory and copy the found files to `/path/to/copy`.
