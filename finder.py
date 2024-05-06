@@ -1,16 +1,14 @@
 import click
 from pathlib import Path
-from utils import find_by_name, find_by_ext, find_by_mod, timestamp_to_string, get_folders, get_files_details
+from utils import timestamp_to_string, get_folders, get_files_details
 import shutil
 from datetime import datetime
 from tabulate import tabulate
+from constants import SEARCH_MAPPING, TABLE_HEADRES
+from exceptions import InvalidInputError, NoneFileFinderError, FileFinderError
 def option_search(path, key, value, recursive):
-    search_mapping = {
-        "name": find_by_name,
-        "ext": find_by_ext,
-        "mod": find_by_mod
-    }
-    files = search_mapping[key](path, value)
+    files = SEARCH_MAPPING[key](path, value)
+
     if recursive:
         subdirs = get_folders(path)
         for subdir in subdirs:
@@ -20,41 +18,20 @@ def option_search(path, key, value, recursive):
 def process_results(files, key, value):
 
     if not files:
-        click.echo(f"No file with {key} {value} was found.")
-    else:
-        table_data = get_files_details(files)
-        table_headers = ["Name", "Ext", "Mod", "Location"]
-        tabulated_data = tabulate(tabular_data=table_data, headers=table_headers, tablefmt="pipe")
-        click.echo(tabulated_data)
-        return tabulated_data
+        raise NoneFileFinderError(f"No file with {key} {value} was found.")
 
+    table_data = get_files_details(files)
+    tabulated_data = tabulate(tabular_data=table_data, headers=TABLE_HEADRES, tablefmt="pipe")
+    click.echo(tabulated_data)
+    return tabulated_data
 
-@click.command()
-@click.argument("path", default="")
-@click.option("-k", "--key", required=True, type=click.Choice(["name", "ext", "mod"]))
-@click.option("-v", "--value", required=True)
-@click.option("-r", "--recursive", is_flag=True, default=False)
-@click.option("-s", "--save", is_flag=True, default=False)
-@click.option("-c", "--copy-to")
-def finder(path, key, value, recursive, copy_to, save):
-    root = Path(path)
-    if not root.is_dir():
-        raise Exception("The path is not a directory")
+def save_report(save, report, root):
+    if save and report:
+        report_file_path = root / f"report_{datetime.now().strftime('%d%m%Y')}.txt"
+        with open(report_file_path.absolute() , mode="w") as report_file:
+            report_file.write(report)
 
-    click.echo(f"The directory selected directory was: {root.absolute()}")
-
-    # pesquisa
-    files = option_search(path=root,key=key, value=value, recursive=recursive)
-    report = process_results(files=files, key=key,value=value)
-    if save:
-        if report:
-            report_file_path = root / f"report_{datetime.now().strftime('%d%m%Y')}.txt"
-            with open(report_file_path.absolute() , mode="w") as report_file:
-                report_file.write(report)
-
-
-
-
+def copy_files(copy_to, files):
     if copy_to:
         copy_path = Path(copy_to)
         if not copy_path.is_dir():
@@ -66,4 +43,35 @@ def finder(path, key, value, recursive, copy_to, save):
             shutil.copy(src=file.absolute(), dst=dst_file)
 
 
-finder()
+@click.command()
+@click.argument("path", default="")
+@click.option("-k", "--key", required=True, type=click.Choice(SEARCH_MAPPING.keys()), help="Define a search key")
+@click.option("-v", "--value", required=True, help="Define a search value")
+@click.option("-r", "--recursive", is_flag=True, default=False, help="Recursively")
+@click.option("-s", "--save", is_flag=True, default=False, help="If define, Save report in current directory")
+@click.option("-c", "--copy-to", help="If define, Copy research files to defined directory")
+def finder(path, key, value, recursive, copy_to, save):
+    """
+    This tool searche for a files using key (-k | --key) and value (-v | --value) from a path.
+    """
+    root = Path(path)
+
+    if not root.is_dir():
+        raise InvalidInputError("The path '{root}' is not an existing directory.")
+
+    click.echo(f"The directory selected directory was: {root.absolute()}")
+
+    # pesquisa
+    files = option_search(path=root,key=key, value=value, recursive=recursive)
+    report = process_results(files=files, key=key,value=value)
+
+    save_report(save=save, report=report, root=root)
+
+    copy_files(copy_to=copy_to, files=files)
+
+
+if __name__ == "__main__":
+    try:
+        finder()
+    except FileFinderError as err:
+        click.echo(click.style(f" ❌ {err}", bg='black', fg='red', italic=True))
